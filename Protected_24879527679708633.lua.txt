@@ -3,6 +3,36 @@
   Autor: sectuno (Modificado)
 ]]
 
+
+-- === Segurança automática: helpers adicionados ===
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local function getREChild(name)
+    local RE = ReplicatedStorage:FindFirstChild("RE")
+    if RE then
+        local ok, child = pcall(function() return RE:FindFirstChild(name) end)
+        return child
+    end
+    return nil
+end
+
+local function safeFire(name, ...)
+    local ev = getREChild(name)
+    if ev and ev.FireServer then
+        pcall(function() ev:FireServer(...) end)
+    end
+end
+
+local function safeInvoke(name, ...)
+    local ev = getREChild(name)
+    if ev and ev.InvokeServer then
+        local ok, res = pcall(function() return ev:InvokeServer(...) end)
+        if ok then return res end
+    end
+    return nil
+end
+-- === fim helpers ===
+
+
 -- Tela de carregamento
 local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 local loadingGui = Instance.new("ScreenGui", playerGui)
@@ -551,7 +581,7 @@ local function playLoopedAudio()
                 [2] = selectedAudioID,
                 [3] = 1,
             }
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1Gu1nSound1s"):FireServer(unpack(args))
+            safeFire("1Gu1nSound1s", unpack(args))
 
             -- Criar e tocar o áudio
             local sound = Instance.new("Sound")
@@ -591,7 +621,7 @@ local function playAudio()
             [2] = selectedAudioID,
             [3] = 1,
         }
-        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Gu1nSound1s"):FireServer(unpack(args))
+        safeFire("1Gu1nSound1s", unpack(args))
 
         -- Criar e tocar o áudio
         local sound = Instance.new("Sound")
@@ -709,7 +739,7 @@ local function cleanupCouch()
         end
     end
     -- Limpar ferramentas via remoto
-    ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    safeFire("1Clea1rTool1s", "ClearAllTools")
 end
 
 -- Conectar evento CharacterAdded
@@ -760,10 +790,10 @@ local function KillPlayerCouch()
     local originalPos = root.Position 
     local sitPos = Vector3.new(145.51, -350.09, 21.58)
 
-    ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    safeFire("1Clea1rTool1s", "ClearAllTools")
     task.wait(0.2)
 
-    ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+    safeInvoke("1Too1l", "PickingTools", "Couch")
     task.wait(0.3)
 
     local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
@@ -822,7 +852,7 @@ local function KillPlayerCouch()
         if tool then tool.Parent = LocalPlayer.Backpack end
 
         task.wait(0.01)
-        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+        safeInvoke("1Too1l", "PickingTools", "Couch")
         task.wait(0.2)
         root.CFrame = CFrame.new(originalPos)
     end)
@@ -854,10 +884,10 @@ local function BringPlayerLLL()
     end
 
     local originalPos = root.Position 
-    ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    safeFire("1Clea1rTool1s", "ClearAllTools")
     task.wait(0.2)
 
-    ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+    safeInvoke("1Too1l", "PickingTools", "Couch")
     task.wait(0.3)
 
     local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
@@ -923,7 +953,7 @@ local function BringPlayerLLL()
         end
 
         task.wait(0.001)
-        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+        safeInvoke("1Too1l", "PickingTools", "Couch")
     end)
 end
 
@@ -940,9 +970,9 @@ local function BringWithCouch()
     end
 
     local args = { [1] = "ClearAllTools" }
-    ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer(unpack(args))
+    safeFire("1Clea1rTool1s", unpack(args))
     local args = { [1] = "PickingTools", [2] = "Couch" }
-    ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+    safeInvoke("1Too1l", unpack(args))
 
     local couch = LocalPlayer.Backpack:WaitForChild("Couch", 2)
     if not couch then
@@ -1008,7 +1038,7 @@ local function BringWithCouch()
     task.wait(0.3)
     couch.Grip = CFrame.new(Vector3.new(0, 0, 0))
     task.wait(0.3)
-    ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
+    safeFire("1Clea1rTool1s", "ClearAllTools")
 end
 
 -- Função KillWithCouch
@@ -1024,9 +1054,9 @@ local function KillWithCouch()
     end
 
     local args = { [1] = "ClearAllTools" }
-    ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer(unpack(args))
+    safeFire("1Clea1rTool1s", unpack(args))
     local args = { [1] = "PickingTools", [2] = "Couch" }
-    ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+    safeInvoke("1Too1l", unpack(args))
 
     local couch = LocalPlayer.Backpack:WaitForChild("Couch", 2)
     if not couch then
@@ -1092,7 +1122,7 @@ local function KillWithCouch()
     task.wait(2)
     local bv = seat1:FindFirstChild("#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W")
     if bv then bv:Destroy() end
-    ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
+    safeFire("1Clea1rTool1s", "ClearAllTools")
 end
     local PlayerSection = Troll:AddSection({ Name = "Troll Player" })
 
@@ -1386,7 +1416,7 @@ end
                                         bus:SetPrimaryPartCFrame(originalPosition)
                                         task.wait(0.7)
                                         local args = { [1] = "DeleteAllVehicles" }
-                                        ReplicatedStorage.RE:FindFirstChild("1Ca1r"):FireServer(unpack(args))
+                                        safeFire("1Ca1r", unpack(args))
                                     end
                                     break
                                 else
@@ -1494,7 +1524,7 @@ local function houseBanKill()
                     end
                 end
                 task.wait(0.5)
-                game:GetService("ReplicatedStorage").RE:FindFirstChild("1Gettin1gHous1e"):FireServer("PickingCustomHouse", "049_House", Number.Value)
+                safeFire("1Gettin1gHous1e", "PickingCustomHouse", "049_House", Number.Value)
             end
 
             task.wait(0.5)
@@ -1503,7 +1533,7 @@ local function houseBanKill()
                 if Check() then
                     RootPart.CFrame = CFrame.new(1118.81, 75.998, -1138.61)
                     task.wait(0.5)
-                    game:GetService("ReplicatedStorage").RE:FindFirstChild("1Ca1r"):FireServer("PickingCar", "SchoolBus")
+                    safeFire("1Ca1r", "PickingCar", "SchoolBus")
                     task.wait(0.5)
                     local PCar = Vehicles:FindFirstChild(Player.Name .. "Car")
                     task.wait(0.5)
@@ -1563,11 +1593,11 @@ local function houseBanKill()
                                     [2] = b,
                                     [3] = v.Parent
                                 }
-                                game:GetService("ReplicatedStorage").RE:FindFirstChild("1Playe1rTrigge1rEven1t"):FireServer(unpack(args))
+                                safeFire("1Playe1rTrigge1rEven1t", unpack(args))
                                 local args = {
                                     [1] = "DeleteAllVehicles"
                                 }
-                                game:GetService("ReplicatedStorage").RE:FindFirstChild("1Ca1r"):FireServer(unpack(args))
+                                safeFire("1Ca1r", unpack(args))
                             end
                         end
                     end
@@ -1616,7 +1646,7 @@ task.wait(0.2)
                 [1] = "PickingTools",
                 [2] = "Couch"
             }
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+            safeInvoke("1Too1l", unpack(args))
 
             task.wait(0.3)
             local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
@@ -1627,7 +1657,7 @@ task.wait(0.2)
 				game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.F, false, game)
 task.wait(0.25)
 
-            workspace.FallenPartsDestroyHeight = 0/0
+            workspace.FallenPartsDestroyHeight = -1e9
             local bv = Instance.new("BodyVelocity")
             bv.Name = "FlingForce"
             bv.Velocity = Vector3.new(9e8, 9e8, 9e8)
@@ -1672,7 +1702,7 @@ task.wait(0.25)
                     end
                 end
                 hum:UnequipTools()
-                game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+                safeInvoke("1Too1l", unpack(args))
             end)
         end
     end
@@ -1690,7 +1720,7 @@ local function FlingBall(target)
 
     local function GetBall()
         if not backpack:FindFirstChild("SoccerBall") then
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "SoccerBall")
+            safeInvoke("1Too1l", "PickingTools", "SoccerBall")
         end
         repeat task.wait() until backpack:FindFirstChild("SoccerBall")
         backpack.SoccerBall.Parent = character
@@ -1785,7 +1815,7 @@ end
 local function ActiveAutoFling(targetPlayer)
     if not isItemInInventory("Couch") then
         local args = { [1] = "PickingTools", [2] = "Couch" }
-        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+        safeInvoke("1Too1l", unpack(args))
     end
 
     equipItem("Couch")
@@ -1896,7 +1926,7 @@ local function ActiveAutoFling(targetPlayer)
                         until BasePart.Velocity.Magnitude > 500 or BasePart.Parent ~= TargetPlayer.Character or TargetPlayer.Parent ~= Players or not TargetPlayer.Character == TCharacter or THumanoid.Sit or Humanoid.Health <= 0 or tick() > Time + TimeToWait or getgenv().flingloop == false
                     end
 
-                    workspace.FallenPartsDestroyHeight = 0/0
+                    workspace.FallenPartsDestroyHeight = -1e9
                     local BV = Instance.new("BodyVelocity")
                     BV.Name = "SpeedDoPai"
                     BV.Parent = RootPart
@@ -1979,7 +2009,7 @@ Troll:AddButton({
         local function spawnBoat()
             RootPart.CFrame = CFrame.new(1754, -2, 58)
             task.wait(0.5)
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1Ca1r"):FireServer("PickingBoat", "MilitaryBoatFree")
+            safeFire("1Ca1r", "PickingBoat", "MilitaryBoatFree")
             task.wait(1)
             return Vehicles:FindFirstChild(Player.Name.."Car")
         end
@@ -2086,7 +2116,7 @@ Troll:AddButton({
         end
         print("Spin e forças removidas do jogador.")
 
-        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Ca1r"):FireServer("DeleteAllVehicles")
+        safeFire("1Ca1r", "DeleteAllVehicles")
         task.wait(0.5)
 
         local PCar = Vehicles and Vehicles:FindFirstChild(Player.Name.."Car")
@@ -2328,7 +2358,7 @@ local function jogarComSofa(alvo)
 	game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.F, false, game)
 	task.wait(0.25)
 
-	workspace.FallenPartsDestroyHeight = 0/0
+	workspace.FallenPartsDestroyHeight = -1e9
 
 	local forca = Instance.new("BodyVelocity")
 	forca.Name = "ForcaJogada"
@@ -2983,6 +3013,20 @@ TrollTab:AddButton({
 
             local weight = Settings["Weight"]
             if weight == 0 then weight = 0.001 end
+
+            newTrack:Play(Settings["Fade In"], weight, Settings["Speed"])
+            
+            CurrentTrack = newTrack
+            CurrentTrack.TimePosition = math.clamp(Settings["Time Position"], 0, 1) * CurrentTrack.Length
+
+            return newTrack
+        end
+
+        -- Executa automaticamente o emote desejado
+        local EmoteId = 139092694533784
+        LoadTrack(EmoteId)
+    end
+}) weight = 0.001 end
 
             newTrack:Play(Settings["Fade In"], weight, Settings["Speed"])
             
